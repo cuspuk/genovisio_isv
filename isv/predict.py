@@ -137,7 +137,7 @@ def predict(annotated_cnv: CNVAnnotation) -> Prediction:
     input_df = prepare_dataframe(annotated_cnv)
 
     dmat_cnvs = xgb.DMatrix(input_df)
-    prediction_cnvs = loaded_model.predict(dmat_cnvs)
+    prediction_cnvs = loaded_model.predict(dmat_cnvs)  # TODO rework later/simplify
     print(f"{prediction_cnvs=}", file=sys.stderr)
     predictions_df = pd.DataFrame(prediction_cnvs, columns=["isv2_predictions"])
     print(f"{predictions_df=}", file=sys.stderr)

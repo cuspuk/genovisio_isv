@@ -34,7 +34,7 @@ To run ISV, call one of entrypoint commands (if installed using conda, activate 
 To annotate and predict input CNV `chr15:41286147-41439352/gain` call:
 
 ```sh
-isv-run chr15:41286147-41439352/gain --annotation-output annotation.json --prediction-output prediction.json
+isv-run chr15:41286147-41439352/gain --annotation_output annotation.json --prediction_output prediction.json
 ```
 
 ### Partial running
