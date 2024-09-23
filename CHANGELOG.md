@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/cuspuk/genovisio_isv/compare/v0.1.0...v0.1.1) (2024-09-23)
+
+
+### Bug Fixes
+
+* fixed absolute paths for outputs ([88806a2](https://github.com/cuspuk/genovisio_isv/commit/88806a2f98ab78cf102449db8d30aa6a2643d495))
+
 ## 0.1.0 (2024-09-23)
 
 
