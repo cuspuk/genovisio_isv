@@ -13,8 +13,8 @@ def main() -> None:
     parser.add_argument("input", help='Input string in the format "chr1:10000-20000/del"')
     parser.add_argument("--mongodb_uri", help="MongoDB full URI", default="mongodb://localhost:27017/")
     parser.add_argument("--db_name", help="MongoDB database name", default="genovisio")
-    parser.add_argument("--annotation-output", help="Path to store the annotation JSON. Else stdout.", default=None)
-    parser.add_argument("--prediction-output", help="Path to store the prediction JSON. Else stdout.", default=None)
+    parser.add_argument("--annotation_output", help="Path to store the annotation JSON. Else stdout.", default=None)
+    parser.add_argument("--prediction_output", help="Path to store the prediction JSON. Else stdout.", default=None)
     args = parser.parse_args()
 
     region = cnv_region.build_from_str(args.input)
