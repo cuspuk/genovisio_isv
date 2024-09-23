@@ -24,7 +24,12 @@ def count_annotated_sv(sv_data: list[dict[str, Any]], element_type: str) -> Gene
     morbid_genes_dict = {}
     omim_phenotypes_dict = {}
 
+    print("ANNOTATED SV DATA")
     for doc in sv_data:
+
+        print(doc[element_type])
+        print(len(doc[element_type].keys()))
+
         if GenesDBAnnotatedTypes.OMIM_MORBID_GENE in doc[element_type].keys():
             morbid_genes_dict = count_or_append_types(
                 doc[element_type][GenesDBAnnotatedTypes.OMIM_MORBID_GENE], morbid_genes_dict
@@ -35,6 +40,8 @@ def count_annotated_sv(sv_data: list[dict[str, Any]], element_type: str) -> Gene
                 doc[element_type][GenesDBAnnotatedTypes.OMIM_PHENOTYPE], omim_phenotypes_dict
             )
 
+
+    print(morbid_genes_dict, omim_phenotypes_dict)
     return GenesDBAnnotatedSVCounter(
         morbid_genes=morbid_genes_dict.get("yes", 0),
         disease_associated_genes=sum(omim_phenotypes_dict.values())
