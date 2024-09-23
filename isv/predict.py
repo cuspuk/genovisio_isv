@@ -102,6 +102,7 @@ class Prediction:
         }
 
     def store_as_json(self, path: str) -> None:
+        path = os.path.abspath(path)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path), exist_ok=True)
         json.dump(self.to_dict(), open(path, "w"))
