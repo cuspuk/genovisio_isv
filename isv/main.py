@@ -1,4 +1,6 @@
 import argparse
+import json
+import sys
 
 from isv.annotate import annotate
 from isv.predict import predict
@@ -13,13 +15,15 @@ def main() -> None:
     )
     parser.add_argument("--mongodb_uri", help="MongoDB full URI", default="mongodb://localhost:27017/")
     parser.add_argument("--db_name", help="MongoDB database name", default="genovisio")
-
+    parser.add_argument(
+        "--annotation-output", help="Path to store the annotation JSON. Else prints to stdout.", default=None
+    )
+    parser.add_argument(
+        "--prediction-output", help="Path to store the prediction JSON. Else prints to stdout.", default=None
+    )
     args = parser.parse_args()
 
     region = cnv_region.build_from_str(args.input)
-    # attributes = constants.LOSS_ATTRIBUTES if cnv_region.cnv_type == CNVType.LOSS else constants.GAIN_ATTRIBUTES
-    # TODO what is the purpose of the attributes?
-
     collection_parser = genovisio_sources_db.IntersectionCollectionsParser(
         uri=args.mongodb_uri,
         db_name=args.db_name,
@@ -30,7 +34,17 @@ def main() -> None:
     annotation = annotate(region=region, collection_parser=collection_parser)
     annotation.store_as_json("annotation.json")
 
-    predict(annotation, "predictions.json")
+    prediction_dict = predict(annotation)
+
+    if args.annotation_output:
+        annotation.store_as_json(args.output)
+    else:
+        print(json.dumps(annotation.as_flat_dict(), indent=2), file=sys.stdout)
+
+    if args.prediction_output:
+        json.dump(prediction_dict, open(args.output, "w"))
+    else:
+        print(json.dumps(prediction_dict, indent=2), file=sys.stdout)
 
 
 if __name__ == "__main__":
