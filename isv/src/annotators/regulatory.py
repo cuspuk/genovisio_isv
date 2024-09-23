@@ -1,10 +1,13 @@
 import enum
 from dataclasses import dataclass
 from typing import Any
+
 from isv.src.dict_utils import iterate_sv_info
+
 
 class RegulatoryTypes(enum.StrEnum):
     """Types of regulatory elements as stored in the database."""
+
     ENAHNCER = "enhancer"
     PROMOTER = "promoter"
     OPEN_CHROMATIN_REGION = "open_chromatin_region"
@@ -17,7 +20,6 @@ class RegulatoryTypes(enum.StrEnum):
     DNASE_I_HYPERSENSITIVE_SITE = "DNase_I_hypersensitive_site"
     ENHANCER_BLOCKING_ELEMENT = "enhancer_blocking_element"
     TATA_BOX = "TATA_box"
-
 
 
 @dataclass
@@ -36,7 +38,7 @@ class RegulatoryTypesCounter:
     regulatory_TATA_box: int
     regulatory: int
 
-    def to_dict(self)->dict[str, int]:
+    def to_dict(self) -> dict[str, int]:
         return {
             "regulatory_enhancer": self.regulatory_enhancer,
             "regulatory_promoter": self.regulatory_promoter,
@@ -53,6 +55,7 @@ class RegulatoryTypesCounter:
             "regulatory": self.regulatory,
         }
 
+
 def count_regulatory_types(regulatory_data: list[dict[str, Any]], element_type: str) -> RegulatoryTypesCounter:
     cnv_types_dict = iterate_sv_info(regulatory_data, "type")
     counter = RegulatoryTypesCounter(
@@ -64,10 +67,12 @@ def count_regulatory_types(regulatory_data: list[dict[str, Any]], element_type: 
         regulatory_curated=cnv_types_dict.get(RegulatoryTypes.CURATED, 0),
         regulatory_flanking_region=cnv_types_dict.get(RegulatoryTypes.FLANKING_REGION, 0),
         regulatory_silencer=cnv_types_dict.get(RegulatoryTypes.SILENCER, 0),
-        regulatory_transcriptional_cis_regulatory_region=cnv_types_dict.get(RegulatoryTypes.TRANSCRIPTIONAL_CIS_REGULATORY_REGION, 0),
+        regulatory_transcriptional_cis_regulatory_region=cnv_types_dict.get(
+            RegulatoryTypes.TRANSCRIPTIONAL_CIS_REGULATORY_REGION, 0
+        ),
         regulatory_DNase_I_hypersensitive_site=cnv_types_dict.get(RegulatoryTypes.DNASE_I_HYPERSENSITIVE_SITE, 0),
         regulatory_enhancer_blocking_element=cnv_types_dict.get(RegulatoryTypes.ENHANCER_BLOCKING_ELEMENT, 0),
         regulatory_TATA_box=cnv_types_dict.get(RegulatoryTypes.TATA_BOX, 0),
-        regulatory=sum(cnv_types_dict.values())
+        regulatory=sum(cnv_types_dict.values()),
     )
     return counter

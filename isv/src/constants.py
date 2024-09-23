@@ -1,3 +1,6 @@
+COLLECTION_NAMES = ["Benign_CNV", "Regulatory", "GnomAD", "HI_gene", "HI_region", "Genes"]
+CHECK_TYPE_NAMES = ["Benign_CNV"]
+
 LOSS_ATTRIBUTES = GAIN_ATTRIBUTES = [
     "gencode_genes",
     "protein_coding",
