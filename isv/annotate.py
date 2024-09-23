@@ -23,7 +23,7 @@ class CNVAnnotation:
 
     def store_as_json(self, path:str):
         with open(path, 'w') as f:
-            json.dump(self.as_flat_dict(), f)
+            json.dump(self.as_flat_dict(), f, indent=2)
 
 
 def annotate(

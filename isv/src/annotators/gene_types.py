@@ -21,20 +21,9 @@ class GenesDBGeneTypesCounter:
     rrna : int = 0
     snrna : int = 0
     mirna : int = 0
-    other : int = 0
+    gene_type_other : int = 0
     gencode_genes: int = 0
 
-    def to_dict(self) -> dict[str, int]:
-        return {
-            "protein_coding": self.protein_coding,
-            "pseudogene": self.pseudogene,
-            "lncrna": self.lncrna,
-            "rrna": self.rrna,
-            "snrna": self.snrna,
-            "mirna": self.mirna,
-            "other": self.other,
-            "gencode_genes": self.gencode_genes,
-        }
 
 def count_gene_types(genes_data: list[dict[str, Any]], element_type: str) -> GenesDBGeneTypesCounter:
     cnv_types_dict = iterate_sv_info(genes_data, element_type)
