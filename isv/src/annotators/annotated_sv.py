@@ -1,13 +1,17 @@
+import enum
+import sys
 from dataclasses import dataclass
 from typing import Any
+
 from isv.src.dict_utils import count_or_append_types
-import enum
 
 
 class GenesDBAnnotatedTypes(enum.StrEnum):
     """Annotated types in the GenesDB database."""
+
     OMIM_MORBID_GENE = "omim_morbid_gene"
     OMIM_PHENOTYPE = "omim_phenotype"
+
 
 @dataclass
 class GenesDBAnnotatedSVCounter:
@@ -20,16 +24,13 @@ class GenesDBAnnotatedSVCounter:
             "disease_associated_genes": self.disease_associated_genes,
         }
 
-def count_annotated_sv(sv_data: list[dict[str, Any]], element_type: str) -> GenesDBAnnotatedSVCounter:
-    morbid_genes_dict = {}
-    omim_phenotypes_dict = {}
 
-    print("ANNOTATED SV DATA")
-    for doc in sv_data:
+def count_annotated_sv(annot_sv_data: list[dict[str, Any]], element_type: str) -> GenesDBAnnotatedSVCounter:
+    morbid_genes_dict: dict[str, int] = {}
+    omim_phenotypes_dict: dict[str, int] = {}
 
-        print(doc[element_type])
-        print(len(doc[element_type].keys()))
-
+    print(f"{annot_sv_data=}", file=sys.stderr)
+    for doc in annot_sv_data:
         if GenesDBAnnotatedTypes.OMIM_MORBID_GENE in doc[element_type].keys():
             morbid_genes_dict = count_or_append_types(
                 doc[element_type][GenesDBAnnotatedTypes.OMIM_MORBID_GENE], morbid_genes_dict
@@ -40,9 +41,6 @@ def count_annotated_sv(sv_data: list[dict[str, Any]], element_type: str) -> Gene
                 doc[element_type][GenesDBAnnotatedTypes.OMIM_PHENOTYPE], omim_phenotypes_dict
             )
 
-
-    print(morbid_genes_dict, omim_phenotypes_dict)
     return GenesDBAnnotatedSVCounter(
-        morbid_genes=morbid_genes_dict.get("yes", 0),
-        disease_associated_genes=sum(omim_phenotypes_dict.values())
+        morbid_genes=morbid_genes_dict.get("yes", 0), disease_associated_genes=sum(omim_phenotypes_dict.values())
     )

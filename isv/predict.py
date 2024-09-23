@@ -1,144 +1,147 @@
-import pandas as pd
-import numpy as np
-import xgboost as xgb
+import enum
+
 import joblib
+import pandas as pd
+import xgboost as xgb
 
-from collections import Counter
-import sys
-import os
-import json
-
-from isv.src.constants import LOSS_ATTRIBUTES, GAIN_ATTRIBUTES
+from isv.annotate import CNVAnnotation
+from isv.src import cnv_region, constants
 
 
-# Class accroding to threshold
-def get_class_threshold_0_5(prediction):
+class ACMGClassification(enum.StrEnum):
+    PATHOGENIC = "Pathogenic"
+    LIKELY_PATHOGENIC = "Likely Pathogenic"
+    VOUS = "VOUS"
+    LIKELY_BENIGN = "Likely Benign"
+    BENIGN = "Benign"
+
+
+def get_class_threshold_0_5(prediction: float) -> ACMGClassification:
     if prediction < 0.05:
-        return 'Benign'
+        return ACMGClassification.BENIGN
     elif prediction > 0.95:
-        return 'Pathogenic'
+        return ACMGClassification.PATHOGENIC
     else:
-        return 'VOUS'
+        return ACMGClassification.VOUS
 
 
-def get_class_threshold_5_10(prediction):
+def get_class_threshold_5_10(prediction: float) -> ACMGClassification:
     if prediction < 0.05:
-        return 'Benign'
+        return ACMGClassification.BENIGN
     elif prediction < 0.1:
-        return 'Likely Benign'
+        return ACMGClassification.LIKELY_BENIGN
     elif prediction > 0.95:
-        return 'Pathogenic'
+        return ACMGClassification.PATHOGENIC
     elif prediction > 0.9:
-        return 'Likely Pathogenic'
+        return ACMGClassification.LIKELY_PATHOGENIC
     else:
-        return 'VOUS'
+        return ACMGClassification.VOUS
 
-def get_class_threshold_10_20(prediction):
+
+def get_class_threshold_10_20(prediction: float) -> ACMGClassification:
     if prediction < 0.1:
-        return 'Benign'
+        return ACMGClassification.BENIGN
     elif prediction < 0.2:
-        return 'Likely Benign'
+        return ACMGClassification.LIKELY_BENIGN
     elif prediction > 0.9:
-        return 'Pathogenic'
+        return ACMGClassification.PATHOGENIC
     elif prediction > 0.8:
-        return 'Likely Pathogenic'
+        return ACMGClassification.LIKELY_PATHOGENIC
     else:
-        return 'VOUS'
+        return ACMGClassification.VOUS
 
 
-# bez vous
-def get_class_threshold_25_50(prediction):
+def get_class_threshold_25_50(prediction: float) -> ACMGClassification:
     if prediction < 0.25:
-        return 'Benign'
+        return ACMGClassification.BENIGN
     elif prediction < 0.5:
-        return 'Likely Benign'
+        return ACMGClassification.LIKELY_BENIGN
     elif prediction > 0.75:
-        return 'Pathogenic'
+        return ACMGClassification.PATHOGENIC
     elif prediction > 0.5:
-        return 'Likely Pathogenic'
+        return ACMGClassification.LIKELY_PATHOGENIC
     else:
-        return 'VOUS'
+        return ACMGClassification.VOUS
 
 
-def get_isv_score(prediction):
-
-    isv_score = (prediction * 2) -1
-
+def get_isv_score(prediction: float) -> float:
+    isv_score = (prediction * 2) - 1
     return isv_score
 
-def get_acmg_classification(isv_score):
 
+def get_acmg_classification(isv_score: float) -> ACMGClassification:
     if isv_score >= 0.99:
-        return 'Pathogenic'
+        return ACMGClassification.PATHOGENIC
     elif isv_score >= 0.9:
-        return 'Likely Pathogenic'
+        return ACMGClassification.LIKELY_PATHOGENIC
     elif isv_score >= -0.89:
-        return 'VOUS'
+        return ACMGClassification.VOUS
     elif isv_score > -0.99:
-        return 'Likely Benign'
+        return ACMGClassification.LIKELY_BENIGN
     else:
-        return 'Benign'
+        return ACMGClassification.BENIGN
 
 
+def predict(annotated_cnv: CNVAnnotation, path_to_save_predictions: str) -> None:
+    cnv_type = annotated_cnv.region.cnv_type
 
-
-
-def get_predictions(annotated_cnv, path_to_save_predictions: str):
-
-    cnv_type = annotated_cnv['cnv_type'].iloc[0]
-
+    annotated_cnv_floats: dict[str, float] = {}
     cnv_prediction_dict = dict()
 
-    if cnv_type == 'loss':
-        attributes = LOSS_ATTRIBUTES
-    elif cnv_type == 'gain':
-        attributes = GAIN_ATTRIBUTES
+    if cnv_type == cnv_region.CNVType.LOSS:
+        attributes = constants.LOSS_ATTRIBUTES
+    elif cnv_type == cnv_region.CNVType.GAIN:
+        attributes = constants.GAIN_ATTRIBUTES
     else:
-        print('Invalid CNV type')
+        raise ValueError("Invalid CNV type")
+        print("Invalid CNV type")  # TODO ????
 
-    #load saved model
-    model_path = './isv2_' + cnv_type + '.json'
+    # load saved model
+    model_path = "./isv/models/isv2_" + cnv_type + ".json"
     loaded_model = joblib.load(model_path)
 
     # get predictions from annotated CNVs
 
+    annotated_cnv_dct = annotated_cnv.as_flat_dict()
     for column in attributes:
-        annotated_cnv[column] = annotated_cnv[column].astype('float')
+        annotated_cnv_floats[column] = float(annotated_cnv_dct[column])
 
-    dmat_cnvs = xgb.DMatrix(annotated_cnv[attributes])
+    input_df = pd.DataFrame.from_dict(annotated_cnv_floats, orient="index").T
+
+    dmat_cnvs = xgb.DMatrix(input_df[attributes])
     prediction_cnvs = loaded_model.predict(dmat_cnvs)
-    predictions_df = pd.DataFrame(prediction_cnvs, columns=['isv2_predictions'])
-    predictions_df['isv2_prediction_2'] = (predictions_df['isv2_predictions'] > 0.5) *1
+    predictions_df = pd.DataFrame(prediction_cnvs, columns=["isv2_predictions"])
+    predictions_df["isv2_prediction_2"] = (predictions_df["isv2_predictions"] > 0.5) * 1
 
     # add class when using threshold
-    predictions_df['isv2_prediction_threshold_5_10'] = predictions_df['isv2_predictions'].apply(get_class_threshold_5_10)
-    predictions_df['isv2_prediction_threshold_10_20'] = predictions_df['isv2_predictions'].apply(get_class_threshold_10_20)
-    predictions_df['isv2_prediction_threshold_25_50'] = predictions_df['isv2_predictions'].apply(get_class_threshold_25_50)
+    predictions_df["isv2_prediction_threshold_5_10"] = predictions_df["isv2_predictions"].apply(
+        get_class_threshold_5_10
+    )
+    predictions_df["isv2_prediction_threshold_10_20"] = predictions_df["isv2_predictions"].apply(
+        get_class_threshold_10_20
+    )
+    predictions_df["isv2_prediction_threshold_25_50"] = predictions_df["isv2_predictions"].apply(
+        get_class_threshold_25_50
+    )
 
     # isv score from prediction
-    predictions_df['isv2_score'] = predictions_df['isv2_predictions'].apply(get_isv_score)
-    predictions_df['isv2_classification'] = predictions_df['isv2_score'].apply(get_acmg_classification)
+    predictions_df["isv2_score"] = predictions_df["isv2_predictions"].apply(get_isv_score)
+    predictions_df["isv2_classification"] = predictions_df["isv2_score"].apply(get_acmg_classification)
 
     # get predictions
-    cnvs_predictions_df = pd.concat([annotated_cnv[['chr', 'start', 'end', 'cnv_type']], predictions_df], axis=1)
-
-    # print(cnvs_predictions_df)
+    # cnvs_predictions_df = pd.concat([annotated_cnv[["chr", "start", "end", "cnv_type"]], predictions_df], axis=1)
+    # TODO ...
 
     # store predictions
-    path_to_save_predictions = path_to_save_predictions + '.tsv.gz'
+    path_to_save_predictions = "predictions.tsv"
+    predictions_df.to_csv(path_to_save_predictions, sep="\t", index=False)
 
-    # Check if the file exists
-    if not os.path.exists(path_to_save_predictions):
-        cnvs_predictions_df.to_csv(path_to_save_predictions, sep='\t', index=False, compression='gzip')
-
-    else:
-        cnvs_predictions_df.to_csv(path_to_save_predictions, sep='\t', mode='a', compression='gzip', index=False, header=False)
-
-    print('Predictions stored to ' + path_to_save_predictions)
+    print("Predictions stored to " + path_to_save_predictions)
 
     # fill dict
-    cnv_prediction_dict['isv_prediction'] = predictions_df['isv2_predictions'].iloc[0].item()
-    cnv_prediction_dict['isv_score'] = predictions_df['isv2_score'].iloc[0].item()
-    cnv_prediction_dict['isv_classification'] = predictions_df['isv2_classification'].iloc[0]
-    cnv_prediction_dict['isv_shap_values'] = {}
-    return cnv_prediction_dict
+    cnv_prediction_dict["isv_prediction"] = predictions_df["isv2_predictions"].iloc[0].item()
+    cnv_prediction_dict["isv_score"] = predictions_df["isv2_score"].iloc[0].item()
+    cnv_prediction_dict["isv_classification"] = predictions_df["isv2_classification"].iloc[0]
+    cnv_prediction_dict["isv_shap_values"] = {}
+
+    print(f"{cnv_prediction_dict=}")
