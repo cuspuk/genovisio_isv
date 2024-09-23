@@ -21,7 +21,7 @@ class GenesDBGeneTypes(enum.StrEnum):
 @dataclass
 class GenesDBGeneTypesCounter:
     protein_coding: int = 0
-    pseudogene: int = 0
+    pseudogenes: int = 0
     lncrna: int = 0
     rrna: int = 0
     snrna: int = 0
@@ -40,7 +40,7 @@ def count_gene_types(genes_data: list[dict[str, Any]], element_type: str) -> Gen
 
     for gene_type in cnv_types_dict.keys():
         if GenesDBGeneTypes.PSEUDOGENE in gene_type:
-            counter.pseudogene += 1
+            counter.pseudogenes += 1
         elif GenesDBGeneTypes.LINC_RNA in gene_type:
             counter.lncrna += 1
         elif GenesDBGeneTypes.R_RNA in gene_type:

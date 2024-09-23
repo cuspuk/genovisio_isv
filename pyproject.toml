@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "isv"
-version = "0.2.0"
+version = "0.2.1"
 description = "CNV annotation and pathogenicity prediction tool"
 authors = ["Michaela Gaziova <michaela.gaziova@geneton.sk>"]
 readme = "README.md"
@@ -13,8 +13,9 @@ joblib = ">=1.4"
 xgboost = "==2.1.0"
 
 [tool.poetry.scripts]
-isv = "isv.main:main"
-
+isv-run = "isv.main:main"
+isv-annotate = "isv.annotate:main"
+isv-predict = "isv.predict:main"
 
 [build-system]
 requires = ["poetry-core"]

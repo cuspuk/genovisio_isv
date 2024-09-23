@@ -94,7 +94,6 @@ def predict(annotated_cnv: CNVAnnotation, path_to_save_predictions: str) -> None
         attributes = constants.GAIN_ATTRIBUTES
     else:
         raise ValueError("Invalid CNV type")
-        print("Invalid CNV type")  # TODO ????
 
     # load saved model
     model_path = "./isv/models/isv2_" + cnv_type + ".json"
@@ -145,3 +144,18 @@ def predict(annotated_cnv: CNVAnnotation, path_to_save_predictions: str) -> None
     cnv_prediction_dict["isv_shap_values"] = {}
 
     print(f"{cnv_prediction_dict=}")
+
+
+def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Predict pathogenicity from annotated CNV.")
+    parser.add_argument("input", help="Annotated CNV stored as json")
+    args = parser.parse_args()
+
+    annotation = CNVAnnotation.from_json(args.input)
+    predict(annotation, "predictions.json")
+
+
+if __name__ == "__main__":
+    main()
