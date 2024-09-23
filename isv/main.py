@@ -26,12 +26,11 @@ def main() -> None:
     )
 
     annotation = annotate(region=region, collection_parser=collection_parser)
-    annotation.store_as_json("annotation.json")
 
     prediction = predict(annotation)
 
     if args.annotation_output:
-        annotation.store_as_json(args.output)
+        annotation.store_as_json(args.annotation_output)
     else:
         print(json.dumps(annotation.as_flat_dict(), indent=2), file=sys.stdout)
 
