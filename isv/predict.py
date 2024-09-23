@@ -116,21 +116,14 @@ def get_attributes(cnvtype: cnv_region.CNVType) -> list[str]:
 
 def prepare_dataframe(annotated_cnv: CNVAnnotation) -> pd.DataFrame:
     attributes = get_attributes(annotated_cnv.region.cnv_type)
-    print(f"Using {attributes=}", file=sys.stderr)
 
-    annotated_cnv_floats: dict[str, float] = {}
-    annotated_cnv_dct = annotated_cnv.as_flat_dict()
-    for column in attributes:
-        annotated_cnv_floats[column] = float(annotated_cnv_dct[column])
+    cnv_dct = annotated_cnv.as_flat_dict()
+    annotated_cnv_floats = {col: float(cnv_dct[col]) for col in cnv_dct if col in attributes}
     df = pd.DataFrame.from_dict(annotated_cnv_floats, orient="index").T
-    filtered_df = df[attributes]
-    print("Filtered dataframe:", file=sys.stderr)
-    print(filtered_df, file=sys.stderr)
-    return filtered_df
+    return df[attributes]
 
 
 def predict(annotated_cnv: CNVAnnotation) -> Prediction:
-    # load saved model
     model_path = format_model_path(annotated_cnv.region.cnv_type)
     print(f"Loading model from {model_path=}", file=sys.stderr)
     loaded_model = joblib.load(model_path)
@@ -139,6 +132,7 @@ def predict(annotated_cnv: CNVAnnotation) -> Prediction:
 
     dmat_cnvs = xgb.DMatrix(input_df)
     prediction_cnvs = loaded_model.predict(dmat_cnvs)
+    print(f"{prediction_cnvs=}", file=sys.stderr)
     predictions_df = pd.DataFrame(prediction_cnvs, columns=["isv2_predictions"])
     print(f"{predictions_df=}", file=sys.stderr)
     predictions_df["isv2_prediction_2"] = (predictions_df["isv2_predictions"] > 0.5) * 1

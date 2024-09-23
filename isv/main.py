@@ -28,7 +28,7 @@ def main() -> None:
     annotation = annotate(region=region, collection_parser=collection_parser)
     annotation.store_as_json("annotation.json")
 
-    prediction_dict = predict(annotation)
+    prediction_dict = predict(annotation).to_dict()
 
     if args.annotation_output:
         annotation.store_as_json(args.output)
