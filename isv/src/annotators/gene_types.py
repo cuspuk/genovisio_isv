@@ -44,7 +44,7 @@ def count_gene_types(genes_data: list[dict[str, Any]], element_type: str) -> Gen
         elif GenesDBGeneTypes.MIRNA in gene_type:
             counter.mirna += 1
         else:
-            counter.other += 1
+            counter.gene_type_other += 1
 
     counter.gencode_genes = sum(cnv_types_dict.values())
     return counter
