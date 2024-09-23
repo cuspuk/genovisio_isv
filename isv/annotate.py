@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from dataclasses import dataclass
 
@@ -27,6 +28,8 @@ class CNVAnnotation:
         )
 
     def store_as_json(self, path: str) -> None:
+        if not os.path.exists(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
             json.dump(self.as_flat_dict(), f, indent=2)
 
