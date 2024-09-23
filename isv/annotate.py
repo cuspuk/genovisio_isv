@@ -1,4 +1,5 @@
 import json
+import sys
 from dataclasses import dataclass
 
 from isv.src import annotators, cnv_region, genovisio_sources_db
@@ -94,11 +95,10 @@ def main() -> None:
     from isv.src import constants
 
     parser = argparse.ArgumentParser(description="Annotate CNV and/or find intersecting items in MongoDB collections.")
-    parser.add_argument(
-        "input", help='Input string in the form "chr1:10000-20000/del". CNV type should be del/dup/loss/gain.'
-    )
+    parser.add_argument("input", help='Input string in the format "chr1:10000-20000/del"')
     parser.add_argument("--mongodb_uri", help="MongoDB full URI", default="mongodb://localhost:27017/")
     parser.add_argument("--db_name", help="MongoDB database name", default="genovisio")
+    parser.add_argument("--output", help="Path to store the annotation JSON. Else prints to stdout.", default=None)
     args = parser.parse_args()
 
     region = cnv_region.build_from_str(args.input)
@@ -111,7 +111,10 @@ def main() -> None:
     )
 
     annotation = annotate(region=region, collection_parser=collection_parser)
-    annotation.store_as_json("annotation.json")
+    if args.output:
+        annotation.store_as_json(args.output)
+    else:
+        print(json.dumps(annotation.as_flat_dict(), indent=2), file=sys.stdout)
 
 
 if __name__ == "__main__":

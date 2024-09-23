@@ -1,4 +1,7 @@
 import enum
+import json
+import sys
+from dataclasses import dataclass
 
 import joblib
 import pandas as pd
@@ -82,34 +85,54 @@ def get_acmg_classification(isv_score: float) -> ACMGClassification:
         return ACMGClassification.BENIGN
 
 
-def predict(annotated_cnv: CNVAnnotation, path_to_save_predictions: str) -> None:
-    cnv_type = annotated_cnv.region.cnv_type
+@dataclass
+class Prediction:
+    isv_prediction: float
+    isv_score: float
+    isv_classification: ACMGClassification
+    isv_shap_values: dict[str, float]
 
-    annotated_cnv_floats: dict[str, float] = {}
-    cnv_prediction_dict = dict()
 
-    if cnv_type == cnv_region.CNVType.LOSS:
-        attributes = constants.LOSS_ATTRIBUTES
-    elif cnv_type == cnv_region.CNVType.GAIN:
-        attributes = constants.GAIN_ATTRIBUTES
+def format_model_path(cnvtype: cnv_region.CNVType) -> str:
+    return f"isv/models/isv2_{cnvtype}.json"
+
+
+def get_attributes(cnvtype: cnv_region.CNVType) -> list[str]:
+    if cnvtype == cnv_region.CNVType.LOSS:
+        return constants.LOSS_ATTRIBUTES
+    elif cnvtype == cnv_region.CNVType.GAIN:
+        return constants.GAIN_ATTRIBUTES
     else:
         raise ValueError("Invalid CNV type")
 
-    # load saved model
-    model_path = "./isv/models/isv2_" + cnv_type + ".json"
-    loaded_model = joblib.load(model_path)
 
-    # get predictions from annotated CNVs
+def prepare_dataframe(annotated_cnv: CNVAnnotation) -> pd.DataFrame:
+    attributes = get_attributes(annotated_cnv.region.cnv_type)
+    print(f"Using {attributes=}", file=sys.stderr)
 
+    annotated_cnv_floats: dict[str, float] = {}
     annotated_cnv_dct = annotated_cnv.as_flat_dict()
     for column in attributes:
         annotated_cnv_floats[column] = float(annotated_cnv_dct[column])
+    df = pd.DataFrame.from_dict(annotated_cnv_floats, orient="index").T
+    filtered_df = df[attributes]
+    print("Filtered dataframe:", file=sys.stderr)
+    print(filtered_df, file=sys.stderr)
+    return filtered_df
 
-    input_df = pd.DataFrame.from_dict(annotated_cnv_floats, orient="index").T
 
-    dmat_cnvs = xgb.DMatrix(input_df[attributes])
+def predict(annotated_cnv: CNVAnnotation) -> Prediction:
+    # load saved model
+    model_path = format_model_path(annotated_cnv.region.cnv_type)
+    print(f"Loading model from {model_path=}", file=sys.stderr)
+    loaded_model = joblib.load(model_path)
+
+    input_df = prepare_dataframe(annotated_cnv)
+
+    dmat_cnvs = xgb.DMatrix(input_df)
     prediction_cnvs = loaded_model.predict(dmat_cnvs)
     predictions_df = pd.DataFrame(prediction_cnvs, columns=["isv2_predictions"])
+    print(f"{predictions_df=}", file=sys.stderr)
     predictions_df["isv2_prediction_2"] = (predictions_df["isv2_predictions"] > 0.5) * 1
 
     # add class when using threshold
@@ -127,23 +150,12 @@ def predict(annotated_cnv: CNVAnnotation, path_to_save_predictions: str) -> None
     predictions_df["isv2_score"] = predictions_df["isv2_predictions"].apply(get_isv_score)
     predictions_df["isv2_classification"] = predictions_df["isv2_score"].apply(get_acmg_classification)
 
-    # get predictions
-    # cnvs_predictions_df = pd.concat([annotated_cnv[["chr", "start", "end", "cnv_type"]], predictions_df], axis=1)
-    # TODO ...
-
-    # store predictions
-    path_to_save_predictions = "predictions.tsv"
-    predictions_df.to_csv(path_to_save_predictions, sep="\t", index=False)
-
-    print("Predictions stored to " + path_to_save_predictions)
-
-    # fill dict
-    cnv_prediction_dict["isv_prediction"] = predictions_df["isv2_predictions"].iloc[0].item()
-    cnv_prediction_dict["isv_score"] = predictions_df["isv2_score"].iloc[0].item()
-    cnv_prediction_dict["isv_classification"] = predictions_df["isv2_classification"].iloc[0]
-    cnv_prediction_dict["isv_shap_values"] = {}
-
-    print(f"{cnv_prediction_dict=}")
+    return Prediction(
+        isv_prediction=predictions_df["isv2_predictions"].iloc[0].item(),
+        isv_score=predictions_df["isv2_score"].iloc[0].item(),
+        isv_classification=predictions_df["isv2_classification"].iloc[0],
+        isv_shap_values={},
+    )
 
 
 def main() -> None:
@@ -151,10 +163,16 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Predict pathogenicity from annotated CNV.")
     parser.add_argument("input", help="Annotated CNV stored as json")
+    parser.add_argument("--output", help="Path to store the prediction JSON. Else prints to stdout.", default=None)
     args = parser.parse_args()
 
     annotation = CNVAnnotation.from_json(args.input)
-    predict(annotation, "predictions.json")
+    prediction_dict = predict(annotation)
+
+    if args.output:
+        json.dump(prediction_dict, open(args.output, "w"))
+    else:
+        print(json.dumps(prediction_dict, indent=2), file=sys.stdout)
 
 
 if __name__ == "__main__":
