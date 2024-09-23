@@ -18,3 +18,35 @@ Without python3.12, you can install isv using mamba:
 ```bash
 mamba env create -f conda_isv.yaml
 ```
+
+This gives you 3 entrypoints:
+
+- `isv-annotate` - running ISV for only annotation of input CNV using genovisio DB
+- `isv-predict` - running ISV for only prediction of annotated CNV
+- `isv-run` - running ISV to both annotate and predict input CNV
+
+## Running
+
+To run ISV, running instance of mongo database is required. Mongo URI and database name can be supplied to the entrypoint commands, see `--help`. Default MongoDB URI is `mongodb://localhost:27017/` and the database name 'genovisio'.
+
+To run ISV, call one of entrypoint commands (if installed using conda, activate it first).
+
+To annotate and predict input CNV `chr15:41286147-41439352/gain` call:
+
+```sh
+isv-run chr15:41286147-41439352/gain --annotation-output annotation.json --prediction-output prediction.json
+```
+
+### Partial running
+
+To annotate only the input CNV given as `chr1:16302-166909/gain` and print the annotation to stdout:
+
+```shell
+isv-annotate chr15:41286147-41439352/gain 2> log.err
+```
+
+To predict from the JSON-stored annotation called `annotation.json`:
+
+```shell
+isv-predict annotation.json 2> log.err
+```
