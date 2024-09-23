@@ -92,6 +92,14 @@ class Prediction:
     isv_classification: ACMGClassification
     isv_shap_values: dict[str, float]
 
+    def to_dict(self) -> dict[str, str | float | dict[str, float]]:
+        return {
+            "isv_prediction": self.isv_prediction,
+            "isv_score": self.isv_score,
+            "isv_classification": self.isv_classification,
+            "isv_shap_values": self.isv_shap_values,
+        }
+
 
 def format_model_path(cnvtype: cnv_region.CNVType) -> str:
     return f"isv/models/isv2_{cnvtype}.json"
@@ -167,7 +175,8 @@ def main() -> None:
     args = parser.parse_args()
 
     annotation = CNVAnnotation.from_json(args.input)
-    prediction_dict = predict(annotation)
+    prediction = predict(annotation)
+    prediction_dict = prediction.to_dict()
 
     if args.output:
         json.dump(prediction_dict, open(args.output, "w"))
