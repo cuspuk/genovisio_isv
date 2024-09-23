@@ -95,9 +95,7 @@ def main() -> None:
     from isv.src import constants
 
     parser = argparse.ArgumentParser(description="Annotate CNV and/or find intersecting items in MongoDB collections.")
-    parser.add_argument(
-        "input", help='Input string in the form "chr1:10000-20000/del". CNV type should be del/dup/loss/gain.'
-    )
+    parser.add_argument("input", help='Input string in the format "chr1:10000-20000/del"')
     parser.add_argument("--mongodb_uri", help="MongoDB full URI", default="mongodb://localhost:27017/")
     parser.add_argument("--db_name", help="MongoDB database name", default="genovisio")
     parser.add_argument("--output", help="Path to store the annotation JSON. Else prints to stdout.", default=None)
