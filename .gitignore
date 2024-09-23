@@ -17,3 +17,6 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+.ruff_cache/
+.ruff_cache.json
