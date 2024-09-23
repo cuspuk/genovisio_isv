@@ -34,13 +34,40 @@ class CNVAnnotation:
         with open(path) as f:
             data = json.load(f)
         return cls(
-            region=cnv_region.CNVRegion(**data),
-            gene_type_counter=annotators.GenesDBGeneTypesCounter(**data),
-            annot_sv_counter=annotators.GenesDBAnnotatedSVCounter(**data),
-            hi_genes_counter=annotators.HIGenesCounter(**data),
-            hi_regions_counter=annotators.HIRegionsCounter(**data),
-            ts_region_counter=annotators.TSRegionsCounter(**data),
-            regulatory_counter=annotators.RegulatoryTypesCounter(**data),
+            region=cnv_region.CNVRegion(data["chr"], data["start"], data["end"], data["cnv_type"]),
+            gene_type_counter=annotators.GenesDBGeneTypesCounter(
+                protein_coding=data["protein_coding"],
+                pseudogenes=data["pseudogenes"],
+                lncrna=data["lncrna"],
+                rrna=data["rrna"],
+                snrna=data["snrna"],
+                mirna=data["mirna"],
+                gene_type_other=data["gene_type_other"],
+                gencode_genes=data["gencode_genes"],
+            ),
+            annot_sv_counter=annotators.GenesDBAnnotatedSVCounter(
+                morbid_genes=data["morbid_genes"], disease_associated_genes=data["disease_associated_genes"]
+            ),
+            hi_genes_counter=annotators.HIGenesCounter(hi_genes=data["hi_genes"]),
+            hi_regions_counter=annotators.HIRegionsCounter(regions_HI=data["regions_HI"]),
+            ts_region_counter=annotators.TSRegionsCounter(regions_TS=data["regions_TS"]),
+            regulatory_counter=annotators.RegulatoryTypesCounter(
+                regulatory_enhancer=data["regulatory_enhancer"],
+                regulatory_promoter=data["regulatory_promoter"],
+                regulatory_open_chromatin_region=data["regulatory_open_chromatin_region"],
+                regulatory_flanking_region=data["regulatory_flanking_region"],
+                regulatory_CTCF_binding_site=data["regulatory_CTCF_binding_site"],
+                regulatory_TF_binding_site=data["regulatory_TF_binding_site"],
+                regulatory_curated=data["regulatory_curated"],
+                regulatory_silencer=data["regulatory_silencer"],
+                regulatory=data["regulatory"],
+                regulatory_DNase_I_hypersensitive_site=data["regulatory_DNase_I_hypersensitive_site"],
+                regulatory_enhancer_blocking_element=data["regulatory_enhancer_blocking_element"],
+                regulatory_TATA_box=data["regulatory_TATA_box"],
+                regulatory_transcriptional_cis_regulatory_region=data[
+                    "regulatory_transcriptional_cis_regulatory_region"
+                ],
+            ),
         )
 
 
