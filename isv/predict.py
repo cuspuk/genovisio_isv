@@ -1,5 +1,6 @@
 import enum
 import json
+import os
 import sys
 from dataclasses import dataclass
 
@@ -100,6 +101,11 @@ class Prediction:
             "isv_shap_values": self.isv_shap_values,
         }
 
+    def store_as_json(self, path: str) -> None:
+        if not os.path.exists(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+        json.dump(self.to_dict(), open(path, "w"))
+
 
 def format_model_path(cnvtype: cnv_region.CNVType) -> str:
     return f"isv/models/isv2_{cnvtype}.json"
@@ -170,12 +176,11 @@ def main() -> None:
 
     annotation = CNVAnnotation.from_json(args.input)
     prediction = predict(annotation)
-    prediction_dict = prediction.to_dict()
 
     if args.output:
-        json.dump(prediction_dict, open(args.output, "w"))
+        prediction.store_as_json(args.output)
     else:
-        print(json.dumps(prediction_dict, indent=2), file=sys.stdout)
+        print(json.dumps(prediction.to_dict(), indent=2), file=sys.stdout)
 
 
 if __name__ == "__main__":
