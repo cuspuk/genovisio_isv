@@ -45,7 +45,7 @@ To annotate only the input CNV given as `chr1:16302-166909/gain` and print the a
 isv-annotate chr15:41286147-41439352/gain 2> log.err
 ```
 
-To predict from the JSON-stored annotation called `annotation.json`:
+To predict from the JSON-stored annotation called `annotation.json` (for example by redirecting `isv-annotate` stdout or using `--output` of the command):
 
 ```shell
 isv-predict annotation.json 2> log.err
