@@ -2,7 +2,7 @@ import enum
 import json
 import os
 import sys
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any
 
 import joblib
@@ -103,12 +103,7 @@ class Prediction:
     isv_shap_values: dict[str, float]
 
     def to_dict(self) -> dict[str, str | float | dict[str, float]]:
-        return {
-            "isv_prediction": self.isv_prediction,
-            "isv_score": self.isv_score,
-            "isv_classification": self.isv_classification,
-            "isv_shap_values": self.isv_shap_values,
-        }
+        return asdict(self)
 
     def store_as_json(self, path: str) -> None:
         path = os.path.abspath(path)
