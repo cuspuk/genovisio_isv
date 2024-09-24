@@ -23,15 +23,10 @@ class ACMGClassification(enum.StrEnum):
 
 
 def get_shap_values(loaded_model: Any, input_df: pd.DataFrame) -> dict[str, float]:
-    attributes = loaded_model.feature_names
     explainer_cnvs = shap.Explainer(loaded_model)
-    shap_values_cnv = explainer_cnvs(input_df)
+    shap_values = explainer_cnvs(input_df).values
 
-    shap_values_df = pd.DataFrame(shap_values_cnv.values, columns=attributes)
-    shap_dict = {}
-    for attribute in attributes:
-        shap_dict[attribute] = shap_values_df[attribute].iloc[0]
-    return shap_dict
+    return {attr: float(shap_val) for shap_val, attr in zip(shap_values, loaded_model.feature_names)}
 
 
 def get_class_threshold_0_5(prediction: float) -> ACMGClassification:
