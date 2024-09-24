@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/cuspuk/genovisio_isv/compare/v0.1.1...v0.2.0) (2024-09-24)
+
+
+### Features
+
+* added shap values ([aa12a56](https://github.com/cuspuk/genovisio_isv/commit/aa12a56bb1063ecde320eacf5d762ce3d61b632e))
+
 ## [0.1.1](https://github.com/cuspuk/genovisio_isv/compare/v0.1.0...v0.1.1) (2024-09-23)
 
 
