@@ -2,7 +2,7 @@ import enum
 import json
 import os
 import sys
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any
 
 import joblib
@@ -23,15 +23,10 @@ class ACMGClassification(enum.StrEnum):
 
 
 def get_shap_values(loaded_model: Any, input_df: pd.DataFrame) -> dict[str, float]:
-    attributes = loaded_model.feature_names
     explainer_cnvs = shap.Explainer(loaded_model)
-    shap_values_cnv = explainer_cnvs(input_df)
+    shap_values = explainer_cnvs(input_df).values
 
-    shap_values_df = pd.DataFrame(shap_values_cnv.values, columns=attributes)
-    shap_dict = {}
-    for attribute in attributes:
-        shap_dict[attribute] = shap_values_df[attribute].iloc[0]
-    return shap_dict
+    return {attr: float(shap_val) for shap_val, attr in zip(shap_values, loaded_model.feature_names)}
 
 
 def get_class_threshold_0_5(prediction: float) -> ACMGClassification:
@@ -108,12 +103,7 @@ class Prediction:
     isv_shap_values: dict[str, float]
 
     def to_dict(self) -> dict[str, str | float | dict[str, float]]:
-        return {
-            "isv_prediction": self.isv_prediction,
-            "isv_score": self.isv_score,
-            "isv_classification": self.isv_classification,
-            "isv_shap_values": self.isv_shap_values,
-        }
+        return asdict(self)
 
     def store_as_json(self, path: str) -> None:
         path = os.path.abspath(path)
