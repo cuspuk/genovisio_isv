@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/cuspuk/genovisio_isv/compare/v0.2.0...v0.2.1) (2024-09-24)
+
+
+### Bug Fixes
+
+* fixed prediction floats to output correctly in json ([66cae22](https://github.com/cuspuk/genovisio_isv/commit/66cae22e5b77777e096bcac585d681def7216342))
+
 ## [0.2.0](https://github.com/cuspuk/genovisio_isv/compare/v0.1.1...v0.2.0) (2024-09-24)
 
 
