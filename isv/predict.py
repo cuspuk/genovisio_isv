@@ -24,7 +24,7 @@ class ACMGClassification(enum.StrEnum):
 
 def get_shap_values(loaded_model: Any, input_df: pd.DataFrame) -> dict[str, float]:
     explainer_cnvs = shap.Explainer(loaded_model)
-    shap_values = explainer_cnvs(input_df).values
+    shap_values = explainer_cnvs(input_df).values[0]
 
     return {attr: float(shap_val) for shap_val, attr in zip(shap_values, loaded_model.feature_names)}
 
