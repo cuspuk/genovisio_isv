@@ -3,9 +3,11 @@ import json
 import os
 import sys
 from dataclasses import dataclass
+from typing import Any
 
 import joblib
 import pandas as pd
+import shap
 import xgboost as xgb
 
 from isv.annotate import CNVAnnotation
@@ -18,6 +20,18 @@ class ACMGClassification(enum.StrEnum):
     VOUS = "VOUS"
     LIKELY_BENIGN = "Likely Benign"
     BENIGN = "Benign"
+
+
+def get_shap_values(loaded_model: Any, input_df: pd.DataFrame) -> dict[str, float]:
+    attributes = loaded_model.feature_names
+    explainer_cnvs = shap.Explainer(loaded_model)
+    shap_values_cnv = explainer_cnvs(input_df)
+
+    shap_values_df = pd.DataFrame(shap_values_cnv.values, columns=attributes)
+    shap_dict = {}
+    for attribute in attributes:
+        shap_dict[attribute] = shap_values_df[attribute].iloc[0]
+    return shap_dict
 
 
 def get_class_threshold_0_5(prediction: float) -> ACMGClassification:
@@ -163,7 +177,7 @@ def predict(annotated_cnv: CNVAnnotation) -> Prediction:
         isv_prediction=predictions_df["isv2_predictions"].iloc[0].item(),
         isv_score=predictions_df["isv2_score"].iloc[0].item(),
         isv_classification=predictions_df["isv2_classification"].iloc[0],
-        isv_shap_values={},
+        isv_shap_values=get_shap_values(loaded_model, input_df),
     )
 
 

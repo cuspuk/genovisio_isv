@@ -50,3 +50,7 @@ To predict from the JSON-stored annotation called `annotation.json` (for example
 ```shell
 isv-predict annotation.json 2> log.err
 ```
+
+## Development
+
+Poetry is used to package the application. It is required to run `poetry build` and `poetry install` to recreate the `poetry.lock` containing frozen versions of dependencies.
