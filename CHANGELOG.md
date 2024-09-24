@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/cuspuk/genovisio_isv/compare/v0.2.1...v0.2.2) (2024-09-24)
+
+
+### Bug Fixes
+
+* fixed shap values outputting not as a list ([95caa5e](https://github.com/cuspuk/genovisio_isv/commit/95caa5eacaeedcc780c4c64c696b0fab3eb368c4))
+
 ## [0.2.1](https://github.com/cuspuk/genovisio_isv/compare/v0.2.0...v0.2.1) (2024-09-24)
 
 
