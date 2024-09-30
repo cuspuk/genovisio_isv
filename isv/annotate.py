@@ -39,6 +39,11 @@ class AnnotationsReporting:
     TS_genes: list[str]
     morbid_genes: list[str]
     disease_associated_genes: list[str]
+    protein_coding_genes_count: int
+    HI_genes_count: int
+    TS_genes_count: int
+    morbid_genes_count: int
+    disease_associated_genes_count: int
 
 
 @dataclass
@@ -87,32 +92,13 @@ class CNVAnnotation:
                 TS_genes=hi_ts_genes.ts_genes_list,
                 morbid_genes=annot_sv.morbid_genes_list,
                 disease_associated_genes=annot_sv.disease_associated_genes_list,
+                protein_coding_genes_count=gene_type_counter.protein_coding,
+                HI_genes_count=len(hi_ts_genes.hi_genes_list),
+                TS_genes_count=len(hi_ts_genes.ts_genes_list),
+                morbid_genes_count=len(annot_sv.morbid_genes_list),
+                disease_associated_genes_count=len(annot_sv.disease_associated_genes_list),
             ),
         )
-
-    # def as_flat_dict(self) -> dict[str, str | int]:
-    #     return (
-    #         self.region.__dict__
-    #         | self.gene_type_counter.__dict__
-    #         | self.annot_sv.__dict__
-    #         | self.hi_ts_genes.__dict__
-    #         | self.hi_regions_counter.__dict__
-    #         | self.ts_region_counter.__dict__
-    #         | self.regulatory_counter.__dict__
-    #     )
-
-    # def output_dict(self) -> dict[str, dict[str, str | int | list[str]]]:
-    #     return {
-    #         "cnv": self.region.__dict__,
-    #         "isv_annot_values": self.gene_type_counter.__dict__
-    #         | self.annot_sv.__dict__
-    #         | self.hi_ts_genes.to_dict_for_prediction()
-    #         | self.hi_regions_counter.__dict__
-    #         | self.ts_region_counter.__dict__
-    #         | self.regulatory_counter.__dict__,
-    #         "annotations_reporting": self.annot_sv.to_dict_for_annotation()
-    #         | self.hi_ts_genes.to_dict_for_annotation(),
-    #     }
 
     def store_as_json(self, path: str) -> None:
         path = os.path.abspath(path)
