@@ -1,6 +1,7 @@
 import argparse
 import json
 import sys
+from dataclasses import asdict
 
 from isv.annotate import annotate
 from isv.predict import predict
@@ -32,7 +33,7 @@ def main() -> None:
     if args.annotation_output:
         annotation.store_as_json(args.annotation_output)
     else:
-        print(json.dumps(annotation.as_flat_dict(), indent=2), file=sys.stdout)
+        print(json.dumps(asdict(annotation), indent=2), file=sys.stdout)
 
     if args.prediction_output:
         prediction.store_as_json(args.prediction_output)

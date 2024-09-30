@@ -135,16 +135,16 @@ def get_attributes(cnvtype: cnv_region.CNVType) -> list[str]:
 
 
 def prepare_dataframe(annotated_cnv: CNVAnnotation) -> pd.DataFrame:
-    attributes = get_attributes(annotated_cnv.region.cnv_type)
+    attributes = get_attributes(annotated_cnv.cnv.cnv_type)
 
-    cnv_dct = annotated_cnv.as_flat_dict()
+    cnv_dct = annotated_cnv.isv_annot_values.as_dict_of_attributes()
     annotated_cnv_floats = {col: float(cnv_dct[col]) for col in cnv_dct if col in attributes}
     df = pd.DataFrame.from_dict(annotated_cnv_floats, orient="index").T
     return df[attributes]
 
 
 def predict(annotated_cnv: CNVAnnotation) -> Prediction:
-    model_path = format_model_path(annotated_cnv.region.cnv_type)
+    model_path = format_model_path(annotated_cnv.cnv.cnv_type)
     print(f"Loading model from {model_path=}", file=sys.stderr)
     loaded_model = joblib.load(model_path)
 

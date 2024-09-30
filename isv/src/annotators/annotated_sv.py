@@ -16,7 +16,7 @@ class GenesDBAnnotatedTypes(enum.StrEnum):
 
 
 @dataclass
-class GenesDBAnnotatedSVCounter:
+class GenesDBAnnotatedSV:
     morbid_genes: int
     disease_associated_genes: int
     morbid_genes_list: list[str]
@@ -30,14 +30,14 @@ class GenesDBAnnotatedSVCounter:
 
     def to_dict_for_annotation(self) -> dict[str, list[str] | int]:
         return {
-            "morbid_genes_list": self.morbid_genes_list,
-            "disease_associated_genes_list": self.disease_associated_genes_list,
+            "morbid_genes": self.morbid_genes_list,
+            "disease_associated_genes": self.disease_associated_genes_list,
             "morbid_genes_count": len(self.morbid_genes_list),
             "disease_associated_genes_count": len(self.disease_associated_genes_list),
         }
 
 
-def count_annotated_sv(annot_sv_data: list[dict[str, Any]], element_type: str) -> GenesDBAnnotatedSVCounter:
+def count_annotated_sv(annot_sv_data: list[dict[str, Any]], element_type: str) -> GenesDBAnnotatedSV:
     morbid_genes_dict: dict[str, int] = {}
     omim_phenotypes_dict: dict[str, int] = {}
     morbid_genes_list: list[str] = []
@@ -52,10 +52,10 @@ def count_annotated_sv(annot_sv_data: list[dict[str, Any]], element_type: str) -
             morbid_genes_list.append(doc[GenesDBAnnotatedTypes.GENE_NAME])
 
         if GenesDBAnnotatedTypes.OMIM_PHENOTYPE in doc[element_type].keys():
-            omim_phenotypes_dict = count_or_append_types(GenesDBAnnotatedTypes.OMIM_PHENOTYPE, omim_phenotypes_dict)
+            omim_phenotypes_dict = count_or_append_types(GenesDBAnnotatedTypes.ASSOCIATED, omim_phenotypes_dict)
             omim_phenotypes_list.append(doc[GenesDBAnnotatedTypes.GENE_NAME])
 
-    return GenesDBAnnotatedSVCounter(
+    return GenesDBAnnotatedSV(
         morbid_genes=morbid_genes_dict.get("yes", 0),
         disease_associated_genes=omim_phenotypes_dict.get(GenesDBAnnotatedTypes.ASSOCIATED, 0),
         morbid_genes_list=morbid_genes_list,
