@@ -27,7 +27,6 @@ def main() -> None:
     )
 
     annotation = annotate(region=region, collection_parser=collection_parser)
-
     prediction = predict(annotation)
 
     if args.annotation_output:
@@ -38,7 +37,7 @@ def main() -> None:
     if args.prediction_output:
         prediction.store_as_json(args.prediction_output)
     else:
-        print(json.dumps(prediction.to_dict(), indent=2), file=sys.stdout)
+        print(json.dumps(asdict(prediction), indent=2), file=sys.stdout)
 
 
 if __name__ == "__main__":

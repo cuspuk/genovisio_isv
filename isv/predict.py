@@ -111,14 +111,12 @@ class Prediction:
     isv_shap_values: dict[str, float]
     isv_shap_scores: dict[str, float]
 
-    def to_dict(self) -> dict[str, str | float | dict[str, float]]:
-        return asdict(self)
-
     def store_as_json(self, path: str) -> None:
         path = os.path.abspath(path)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path), exist_ok=True)
-        json.dump(self.to_dict(), open(path, "w"))
+        with open(path, "w") as f:
+            json.dump(asdict(self), f, indent=2)
 
 
 def format_model_path(cnvtype: cnv_region.CNVType) -> str:
@@ -197,7 +195,7 @@ def main() -> None:
     if args.output:
         prediction.store_as_json(args.output)
     else:
-        print(json.dumps(prediction.to_dict(), indent=2), file=sys.stdout)
+        print(json.dumps(asdict(prediction), indent=2), file=sys.stdout)
 
 
 if __name__ == "__main__":
