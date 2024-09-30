@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "isv"
-version = "0.2.2"
+version = "0.3.0"
 description = "CNV annotation and pathogenicity prediction tool"
 authors = ["Michaela Gaziova <michaela.gaziova@geneton.sk>"]
 readme = "README.md"
