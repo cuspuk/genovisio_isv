@@ -111,7 +111,13 @@ class CNVAnnotation:
     def from_json(cls, path: str) -> "CNVAnnotation":
         with open(path) as f:
             data = json.load(f)
-        return cls(**data)
+        cnv_dct = data["cnv"]
+        cnv_dct.pop("length")
+        return cls(
+            cnv=cnv_region.CNVRegion(**data["cnv"]),
+            isv_annot_values=ISVAnnotValues(**data["isv_annot_values"]),
+            annotations_reporting=AnnotationsReporting(**data["annotations_reporting"]),
+        )
 
 
 def annotate(
