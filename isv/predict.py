@@ -111,14 +111,12 @@ class Prediction:
     isv_shap_values: dict[str, float]
     isv_shap_scores: dict[str, float]
 
-    def to_dict(self) -> dict[str, str | float | dict[str, float]]:
-        return asdict(self)
-
     def store_as_json(self, path: str) -> None:
         path = os.path.abspath(path)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path), exist_ok=True)
-        json.dump(self.to_dict(), open(path, "w"))
+        with open(path, "w") as f:
+            json.dump(asdict(self), f, indent=2)
 
 
 def format_model_path(cnvtype: cnv_region.CNVType) -> str:
@@ -135,16 +133,16 @@ def get_attributes(cnvtype: cnv_region.CNVType) -> list[str]:
 
 
 def prepare_dataframe(annotated_cnv: CNVAnnotation) -> pd.DataFrame:
-    attributes = get_attributes(annotated_cnv.region.cnv_type)
+    attributes = get_attributes(annotated_cnv.cnv.cnv_type)
 
-    cnv_dct = annotated_cnv.as_flat_dict()
+    cnv_dct = annotated_cnv.isv_annot_values.as_dict_of_attributes()
     annotated_cnv_floats = {col: float(cnv_dct[col]) for col in cnv_dct if col in attributes}
     df = pd.DataFrame.from_dict(annotated_cnv_floats, orient="index").T
     return df[attributes]
 
 
 def predict(annotated_cnv: CNVAnnotation) -> Prediction:
-    model_path = format_model_path(annotated_cnv.region.cnv_type)
+    model_path = format_model_path(annotated_cnv.cnv.cnv_type)
     print(f"Loading model from {model_path=}", file=sys.stderr)
     loaded_model = joblib.load(model_path)
 
@@ -197,7 +195,7 @@ def main() -> None:
     if args.output:
         prediction.store_as_json(args.output)
     else:
-        print(json.dumps(prediction.to_dict(), indent=2), file=sys.stdout)
+        print(json.dumps(asdict(prediction), indent=2), file=sys.stdout)
 
 
 if __name__ == "__main__":

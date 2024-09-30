@@ -8,7 +8,7 @@ _INVALID_HI_GENE_VALUES = [40, 0, "", "nan"]
 
 
 @dataclass
-class HIGenesCounter:
+class HIandTSGenes:
     hi_genes: int
     hi_genes_list: list[str]
     ts_genes_list: list[str]
@@ -20,14 +20,14 @@ class HIGenesCounter:
 
     def to_dict_for_annotation(self) -> dict[str, list[str] | int]:
         return {
-            "TS_genes_list": self.ts_genes_list,
-            "HI_genes_list": self.hi_genes_list,
+            "TS_genes": self.ts_genes_list,
+            "HI_genes": self.hi_genes_list,
             "HI_genes_count": len(self.hi_genes_list),
             "TS_genes_count": len(self.ts_genes_list),
         }
 
 
-def count_hi_genes(hi_gene_data: list[dict[str, Any]], element_type: str) -> HIGenesCounter:
+def count_hi_genes(hi_gene_data: list[dict[str, Any]], element_type: str) -> HIandTSGenes:
     cnv_types_dict_HI_genes = iterate_sv_info(hi_gene_data, element_type)
     print(f"{cnv_types_dict_HI_genes=}", file=sys.stderr)
 
@@ -46,7 +46,7 @@ def count_hi_genes(hi_gene_data: list[dict[str, Any]], element_type: str) -> HIG
             if ts_score == "1" or ts_score == "2" or ts_score == "3" or ts_score == "30":
                 ts_genes_list.append(hi_gene_data[i]["Gene Symbol"])
 
-    return HIGenesCounter(
+    return HIandTSGenes(
         hi_genes=sum(cnv_types_dict_HI_genes.values()),
         hi_genes_list=hi_genes_list,
         ts_genes_list=ts_genes_list,

@@ -1,30 +1,103 @@
 import json
 import os
 import sys
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 from isv.src import annotators, cnv_region, genovisio_sources_db
 
 
 @dataclass
-class CNVAnnotation:
-    region: cnv_region.CNVRegion
-    gene_type_counter: annotators.GenesDBGeneTypesCounter
-    annot_sv_counter: annotators.GenesDBAnnotatedSVCounter
-    hi_genes_counter: annotators.HIGenesCounter
-    hi_regions_counter: annotators.HIRegionsCounter
-    ts_region_counter: annotators.TSRegionsCounter
-    regulatory_counter: annotators.RegulatoryTypesCounter
+class ISVAnnotValues:
+    gencode_genes: int
+    protein_coding: int
+    pseudogenes: int
+    mirna: int
+    lncrna: int
+    rrna: int
+    snrna: int
+    morbid_genes: int
+    disease_associated_genes: int
+    hi_genes: int
+    regions_HI: int
+    regions_TS: int
+    regulatory: int
+    regulatory_enhancer: int
+    regulatory_silencer: int
+    regulatory_transcriptional_cis_regulatory_region: int
+    regulatory_promoter: int
+    regulatory_DNase_I_hypersensitive_site: int
+    regulatory_enhancer_blocking_element: int
+    regulatory_TATA_box: int
 
-    def as_flat_dict(self) -> dict[str, str | int]:
-        return (
-            self.region.__dict__
-            | self.gene_type_counter.__dict__
-            | self.annot_sv_counter.__dict__
-            | self.hi_genes_counter.__dict__
-            | self.hi_regions_counter.__dict__
-            | self.ts_region_counter.__dict__
-            | self.regulatory_counter.__dict__
+    def as_dict_of_attributes(self) -> dict[str, int]:
+        return asdict(self)
+
+
+@dataclass
+class AnnotationsReporting:
+    HI_genes: list[str]
+    TS_genes: list[str]
+    morbid_genes: list[str]
+    disease_associated_genes: list[str]
+    protein_coding_genes_count: int
+    HI_genes_count: int
+    TS_genes_count: int
+    morbid_genes_count: int
+    disease_associated_genes_count: int
+
+
+@dataclass
+class CNVAnnotation:
+    cnv: cnv_region.CNVRegion
+    isv_annot_values: ISVAnnotValues
+    annotations_reporting: AnnotationsReporting
+
+    @classmethod
+    def build(
+        cls,
+        region: cnv_region.CNVRegion,
+        gene_type_counter: annotators.GenesDBGeneTypesCounter,
+        annot_sv: annotators.GenesDBAnnotatedSV,
+        hi_ts_genes: annotators.HIandTSGenes,
+        hi_regions_counter: annotators.HIRegionsCounter,
+        ts_region_counter: annotators.TSRegionsCounter,
+        regulatory_counter: annotators.RegulatoryTypesCounter,
+    ) -> "CNVAnnotation":
+        return cls(
+            cnv=region,
+            isv_annot_values=ISVAnnotValues(
+                gencode_genes=gene_type_counter.gencode_genes,
+                protein_coding=gene_type_counter.protein_coding,
+                pseudogenes=gene_type_counter.pseudogenes,
+                lncrna=gene_type_counter.lncrna,
+                rrna=gene_type_counter.rrna,
+                snrna=gene_type_counter.snrna,
+                mirna=gene_type_counter.mirna,
+                morbid_genes=annot_sv.morbid_genes,
+                disease_associated_genes=annot_sv.disease_associated_genes,
+                hi_genes=hi_ts_genes.hi_genes,
+                regions_HI=hi_regions_counter.regions_HI,
+                regions_TS=ts_region_counter.regions_TS,
+                regulatory=regulatory_counter.regulatory,
+                regulatory_enhancer=regulatory_counter.regulatory_enhancer,
+                regulatory_silencer=regulatory_counter.regulatory_silencer,
+                regulatory_transcriptional_cis_regulatory_region=regulatory_counter.regulatory_transcriptional_cis_regulatory_region,
+                regulatory_promoter=regulatory_counter.regulatory_promoter,
+                regulatory_DNase_I_hypersensitive_site=regulatory_counter.regulatory_DNase_I_hypersensitive_site,
+                regulatory_enhancer_blocking_element=regulatory_counter.regulatory_enhancer_blocking_element,
+                regulatory_TATA_box=regulatory_counter.regulatory_TATA_box,
+            ),
+            annotations_reporting=AnnotationsReporting(
+                HI_genes=hi_ts_genes.hi_genes_list,
+                TS_genes=hi_ts_genes.ts_genes_list,
+                morbid_genes=annot_sv.morbid_genes_list,
+                disease_associated_genes=annot_sv.disease_associated_genes_list,
+                protein_coding_genes_count=gene_type_counter.protein_coding,
+                HI_genes_count=len(hi_ts_genes.hi_genes_list),
+                TS_genes_count=len(hi_ts_genes.ts_genes_list),
+                morbid_genes_count=len(annot_sv.morbid_genes_list),
+                disease_associated_genes_count=len(annot_sv.disease_associated_genes_list),
+            ),
         )
 
     def store_as_json(self, path: str) -> None:
@@ -32,47 +105,18 @@ class CNVAnnotation:
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
-            json.dump(self.as_flat_dict(), f, indent=2)
+            json.dump(asdict(self), f, indent=2)
 
     @classmethod
     def from_json(cls, path: str) -> "CNVAnnotation":
         with open(path) as f:
             data = json.load(f)
+        cnv_dct = data["cnv"]
+        cnv_dct.pop("length")
         return cls(
-            region=cnv_region.CNVRegion(data["chr"], data["start"], data["end"], data["cnv_type"]),
-            gene_type_counter=annotators.GenesDBGeneTypesCounter(
-                protein_coding=data["protein_coding"],
-                pseudogenes=data["pseudogenes"],
-                lncrna=data["lncrna"],
-                rrna=data["rrna"],
-                snrna=data["snrna"],
-                mirna=data["mirna"],
-                gene_type_other=data["gene_type_other"],
-                gencode_genes=data["gencode_genes"],
-            ),
-            annot_sv_counter=annotators.GenesDBAnnotatedSVCounter(
-                morbid_genes=data["morbid_genes"], disease_associated_genes=data["disease_associated_genes"]
-            ),
-            hi_genes_counter=annotators.HIGenesCounter(hi_genes=data["hi_genes"]),
-            hi_regions_counter=annotators.HIRegionsCounter(regions_HI=data["regions_HI"]),
-            ts_region_counter=annotators.TSRegionsCounter(regions_TS=data["regions_TS"]),
-            regulatory_counter=annotators.RegulatoryTypesCounter(
-                regulatory_enhancer=data["regulatory_enhancer"],
-                regulatory_promoter=data["regulatory_promoter"],
-                regulatory_open_chromatin_region=data["regulatory_open_chromatin_region"],
-                regulatory_flanking_region=data["regulatory_flanking_region"],
-                regulatory_CTCF_binding_site=data["regulatory_CTCF_binding_site"],
-                regulatory_TF_binding_site=data["regulatory_TF_binding_site"],
-                regulatory_curated=data["regulatory_curated"],
-                regulatory_silencer=data["regulatory_silencer"],
-                regulatory=data["regulatory"],
-                regulatory_DNase_I_hypersensitive_site=data["regulatory_DNase_I_hypersensitive_site"],
-                regulatory_enhancer_blocking_element=data["regulatory_enhancer_blocking_element"],
-                regulatory_TATA_box=data["regulatory_TATA_box"],
-                regulatory_transcriptional_cis_regulatory_region=data[
-                    "regulatory_transcriptional_cis_regulatory_region"
-                ],
-            ),
+            cnv=cnv_region.CNVRegion(**data["cnv"]),
+            isv_annot_values=ISVAnnotValues(**data["isv_annot_values"]),
+            annotations_reporting=AnnotationsReporting(**data["annotations_reporting"]),
         )
 
 
@@ -82,11 +126,11 @@ def annotate(
     collection_parser: genovisio_sources_db.IntersectionCollectionsParser,
 ) -> CNVAnnotation:
     data = collection_parser.get_for_region(region)
-    return CNVAnnotation(
+    return CNVAnnotation.build(
         region=region,
         gene_type_counter=annotators.count_gene_types(data["Genes"], "gene_type"),
-        annot_sv_counter=annotators.count_annotated_sv(data["Genes"], "AnnotSV"),
-        hi_genes_counter=annotators.count_hi_genes(data["HI_gene"], "Haploinsufficiency Score"),
+        annot_sv=annotators.count_annotated_sv(data["Genes"], "AnnotSV"),
+        hi_ts_genes=annotators.count_hi_genes(data["HI_gene"], "Haploinsufficiency Score"),
         hi_regions_counter=annotators.count_hi_regions(data["HI_region"], "Haploinsufficiency Score"),
         ts_region_counter=annotators.count_ts_regions(data["HI_region"], "Triplosensitivity Score"),
         regulatory_counter=annotators.count_regulatory_types(data["Regulatory"], "type"),
@@ -118,7 +162,7 @@ def main() -> None:
     if args.output:
         annotation.store_as_json(args.output)
     else:
-        print(json.dumps(annotation.as_flat_dict(), indent=2), file=sys.stdout)
+        print(json.dumps(asdict(annotation), indent=2), file=sys.stdout)
 
 
 if __name__ == "__main__":
