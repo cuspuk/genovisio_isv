@@ -4,7 +4,7 @@ from typing import Any
 
 from isv.src.dict_utils import iterate_sv_info
 
-_INVALID_TS_REGIONS_VALUES = [40, 0, "Not yet evaluated"]
+_INVALID_TS_REGIONS_VALUES = ["40", "0", "Not yet evaluated"]
 
 
 @dataclass
