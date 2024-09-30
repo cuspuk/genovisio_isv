@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/cuspuk/genovisio_isv/compare/v0.2.2...v0.3.0) (2024-09-30)
+
+
+### Features
+
+* expanded annotation to include genes ([cbd5901](https://github.com/cuspuk/genovisio_isv/commit/cbd59019eabf184b1f68246a22e9c7c16f1f02d6))
+* shap rescaled in predictions ([cf75b3b](https://github.com/cuspuk/genovisio_isv/commit/cf75b3ba8cd207801a7cb927b3aea598b52900fa))
+
+
+### Bug Fixes
+
+* made json outputs consistent ([eed4385](https://github.com/cuspuk/genovisio_isv/commit/eed438521b8f467bfb526f6d98cbb1b7cc14ed9b))
+* recreation of annotation obj from json ([c984057](https://github.com/cuspuk/genovisio_isv/commit/c98405722f6c4303118cd1234e90191469b8438b))
+
 ## [0.2.2](https://github.com/cuspuk/genovisio_isv/compare/v0.2.1...v0.2.2) (2024-09-24)
 
 
