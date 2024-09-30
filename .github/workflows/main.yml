@@ -32,7 +32,7 @@ jobs:
 
       - name: Run tests
         run: |
-          poetry run isv-predict tests/annotation.json > tests/actual_output.json
+          poetry run isv-predict tests/annotation.json --output tests/actual_output.json
 
       - name: Compare outputs
         run: |
