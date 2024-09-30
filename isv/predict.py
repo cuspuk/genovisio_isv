@@ -29,6 +29,14 @@ def get_shap_values(loaded_model: Any, input_df: pd.DataFrame) -> dict[str, floa
     return {attr: float(shap_val) for shap_val, attr in zip(shap_values, loaded_model.feature_names)}
 
 
+def get_shap_scores(shap_values: dict[str, float]) -> dict[str, float]:
+    shap_scores: dict[str, float] = {}
+    for attribute in shap_values.keys():
+        shap_scores[attribute] = shap_values[attribute] * 2 - 1
+
+    return shap_scores
+
+
 def get_class_threshold_0_5(prediction: float) -> ACMGClassification:
     if prediction < 0.05:
         return ACMGClassification.BENIGN
@@ -101,6 +109,7 @@ class Prediction:
     isv_score: float
     isv_classification: ACMGClassification
     isv_shap_values: dict[str, float]
+    isv_shap_scores: dict[str, float]
 
     def to_dict(self) -> dict[str, str | float | dict[str, float]]:
         return asdict(self)
@@ -163,11 +172,14 @@ def predict(annotated_cnv: CNVAnnotation) -> Prediction:
     predictions_df["isv2_score"] = predictions_df["isv2_predictions"].apply(get_isv_score)
     predictions_df["isv2_classification"] = predictions_df["isv2_score"].apply(get_acmg_classification)
 
+    shap_values = get_shap_values(loaded_model, input_df)
+
     return Prediction(
         isv_prediction=predictions_df["isv2_predictions"].iloc[0].item(),
         isv_score=predictions_df["isv2_score"].iloc[0].item(),
         isv_classification=predictions_df["isv2_classification"].iloc[0],
-        isv_shap_values=get_shap_values(loaded_model, input_df),
+        isv_shap_values=shap_values,
+        isv_shap_scores=get_shap_scores(shap_values),
     )
 
 
