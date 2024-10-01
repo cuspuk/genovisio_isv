@@ -120,7 +120,9 @@ class Prediction:
 
 
 def format_model_path(cnvtype: cnv_region.CNVType) -> str:
-    return f"isv/models/isv2_{cnvtype}.json"
+    models_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
+    models_name = f"isv2_{cnvtype}.json"
+    return os.path.join(models_dir, models_name)
 
 
 def get_attributes(cnvtype: cnv_region.CNVType) -> list[str]:
