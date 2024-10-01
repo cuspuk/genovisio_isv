@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/cuspuk/genovisio_isv/compare/v0.3.0...v0.3.1) (2024-10-01)
+
+
+### Bug Fixes
+
+* path obtaining to model fixed ([caaf551](https://github.com/cuspuk/genovisio_isv/commit/caaf551f608aa0941eacc5891f4046dcfe32fc99))
+
 ## [0.3.0](https://github.com/cuspuk/genovisio_isv/compare/v0.2.2...v0.3.0) (2024-09-30)
 
 
